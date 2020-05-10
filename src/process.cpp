@@ -3,6 +3,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include "linux_parser.h"
 
 #include "process.h"
 
@@ -11,7 +12,7 @@ using std::to_string;
 using std::vector;
 
 // TODO: Return this process's ID
-int Process::Pid() { return 0; }
+int Process::Pid() { return LinuxParser::Pids()[0]; }
 
 // TODO: Return this process's CPU utilization
 float Process::CpuUtilization() { return 0; }

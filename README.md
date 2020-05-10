@@ -1,3 +1,9 @@
+# Important changes
+The include of filesystem library has force the installation of g++ and gcc version 8 in order to use it. With g++ and gcc version 7 it was located under experimental/filesystem.
+
+**g++ in version 8 is needed to compile this project and added in CMakeLists.txt stdc++fs as a target link library**
+**Starting g++ version 9 that target link is not necessary any more**
+
 # CppND-System-Monitor
 
 Starter code for System Monitor Project in the Object Oriented Programming Course of the [Udacity C++ Nanodegree Program](https://www.udacity.com/course/c-plus-plus-nanodegree--nd213). 
