@@ -1,9 +1,8 @@
 #include <dirent.h>
 #include <unistd.h>
+#include <filesystem>  // g++ 8 in Ubuntu
 #include <string>
 #include <vector>
-#include <iostream>
-#include <filesystem> // g++ 8 in Ubuntu
 
 #include "linux_parser.h"
 
@@ -12,31 +11,32 @@ using std::string;
 using std::to_string;
 using std::vector;
 
-// Inner and annonymous namespace. Just wanted to use a map for obtaining the Operating
-// System. This map could easily be saved globally and just parse it once if more data of 
-// /etc/os-release is needed.
+// Inner and annonymous namespace. Just wanted to use a map for obtaining the
+// Operating System. This map could easily be saved globally and just parse it
+// once if more data of /etc/os-release is needed.
 namespace {
-    std::map<std::string, std::string> CreateMapFromFileAndDivisor(std::string file, char divisor) {
-        string line;
-        string key;
-        string value;
-        std::map<std::string, std::string> result {};
-        std::ifstream filestream(file);
-        if (filestream.is_open()) {
-            while (std::getline(filestream, line)) {
-                line.erase(std::remove(line.begin(), line.end(), '"'), line.end());
-                std::size_t index = line.find_first_of(divisor);
-                if (index == string::npos) {
-                    continue;
-                }
-                key = line.substr(0, index);
-                value = line.substr(index + 1, line.length());
-                result[key] = value;
+std::map<std::string, std::string> CreateMapFromFileAndDivisor(std::string file,
+                                                               char divisor) {
+    string line;
+    string key;
+    string value;
+    std::map<std::string, std::string> result{};
+    std::ifstream filestream(file);
+    if (filestream.is_open()) {
+        while (std::getline(filestream, line)) {
+            line.erase(std::remove(line.begin(), line.end(), '"'), line.end());
+            std::size_t index = line.find_first_of(divisor);
+            if (index == string::npos) {
+                continue;
             }
+            key = line.substr(0, index);
+            value = line.substr(index + 1, line.length());
+            result[key] = value;
         }
-        return result;
     }
+    return result;
 }
+}  // namespace
 
 string LinuxParser::OperatingSystem() {
     return ::CreateMapFromFileAndDivisor(kOSPath, '=')["PRETTY_NAME"];
@@ -56,8 +56,9 @@ string LinuxParser::Kernel() {
 }
 
 vector<int> LinuxParser::Pids() {
-    vector<int> pids {};
-    for (const auto& directory : std::filesystem::directory_iterator(kProcDirectory)) {
+    vector<int> pids{};
+    for (const auto& directory :
+         std::filesystem::directory_iterator(kProcDirectory)) {
         std::string filename = directory.path().filename();
         if (std::all_of(filename.begin(), filename.end(), isdigit)) {
             int pid = stoi(filename);
@@ -67,22 +68,33 @@ vector<int> LinuxParser::Pids() {
     return pids;
 }
 
-// TODO: Read and return the system memory utilization
-float LinuxParser::MemoryUtilization() { 
-    auto memory = ::CreateMapFromFileAndDivisor(kProcDirectory + kMeminfoFilename, ':');
+float LinuxParser::MemoryUtilization() {
+    auto memory =
+        ::CreateMapFromFileAndDivisor(kProcDirectory + kMeminfoFilename, ':');
     std::string totalString = memory["MemTotal"];
-    totalString.erase(std::remove(totalString.begin(), totalString.end(), ' '), totalString.end());
+    totalString.erase(std::remove(totalString.begin(), totalString.end(), ' '),
+                      totalString.end());
     float total = atof(totalString.c_str());
-    
+
     std::string freeString = memory["MemFree"];
-    freeString.erase(std::remove(freeString.begin(), freeString.end(), ' '), freeString.end());
+    freeString.erase(std::remove(freeString.begin(), freeString.end(), ' '),
+                     freeString.end());
     float free = atof(freeString.c_str());
 
     return (total - free) / total;
 }
 
-// TODO: Read and return the system uptime
-long LinuxParser::UpTime() { return 0; }
+long LinuxParser::UpTime() {
+    string uptime, idle;
+    string line;
+    std::ifstream stream(kProcDirectory + kUptimeFilename);
+    if (stream.is_open()) {
+        std::getline(stream, line);
+        std::istringstream linestream(line);
+        linestream >> uptime >> idle;
+    }
+    return atol(uptime.c_str());
+}
 
 // TODO: Read and return the number of jiffies for the system
 long LinuxParser::Jiffies() { return 0; }
