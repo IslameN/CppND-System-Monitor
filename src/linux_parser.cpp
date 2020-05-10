@@ -16,16 +16,16 @@ using std::vector;
 // System. This map could easily be saved globally and just parse it once if more data of 
 // /etc/os-release is needed.
 namespace {
-    std::map<std::string, std::string> OperatingSystemMap() {
+    std::map<std::string, std::string> CreateMapFromFileAndDivisor(std::string file, char divisor) {
         string line;
         string key;
         string value;
         std::map<std::string, std::string> result {};
-        std::ifstream filestream(LinuxParser::kOSPath);
+        std::ifstream filestream(file);
         if (filestream.is_open()) {
             while (std::getline(filestream, line)) {
                 line.erase(std::remove(line.begin(), line.end(), '"'), line.end());
-                std::size_t index = line.find_first_of("=");
+                std::size_t index = line.find_first_of(divisor);
                 if (index == string::npos) {
                     continue;
                 }
@@ -39,7 +39,7 @@ namespace {
 }
 
 string LinuxParser::OperatingSystem() {
-    return ::OperatingSystemMap()["PRETTY_NAME"];
+    return ::CreateMapFromFileAndDivisor(kOSPath, '=')["PRETTY_NAME"];
 }
 
 // DONE: An example of how to read data from the filesystem
@@ -68,7 +68,18 @@ vector<int> LinuxParser::Pids() {
 }
 
 // TODO: Read and return the system memory utilization
-float LinuxParser::MemoryUtilization() { return 0.0; }
+float LinuxParser::MemoryUtilization() { 
+    auto memory = ::CreateMapFromFileAndDivisor(kProcDirectory + kMeminfoFilename, ':');
+    std::string totalString = memory["MemTotal"];
+    totalString.erase(std::remove(totalString.begin(), totalString.end(), ' '), totalString.end());
+    float total = atof(totalString.c_str());
+    
+    std::string freeString = memory["MemFree"];
+    freeString.erase(std::remove(freeString.begin(), freeString.end(), ' '), freeString.end());
+    float free = atof(freeString.c_str());
+
+    return (total - free) / total;
+}
 
 // TODO: Read and return the system uptime
 long LinuxParser::UpTime() { return 0; }
