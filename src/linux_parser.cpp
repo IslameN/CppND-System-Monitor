@@ -6,6 +6,8 @@
 
 #include "linux_parser.h"
 
+#include <iostream>
+
 using std::stof;
 using std::string;
 using std::to_string;
@@ -35,6 +37,33 @@ std::map<std::string, std::string> CreateMapFromFileAndDivisor(std::string file,
         }
     }
     return result;
+}
+int ParseStatFileForProcesses(std::string key) {
+    string line;
+    string processes;
+    int totalProcesses;
+    std::ifstream filestream(LinuxParser::kProcDirectory + LinuxParser::kStatFilename);
+    if (filestream.is_open()) {
+        while (std::getline(filestream, line)) {
+            std::istringstream linestream(line);
+            // Original code that reads all lines and contents of a line.
+            // while(linestream >> processes >> totalProcesses) {
+            //     if (processes == "processes") {
+            //         return totalProcesses;
+            //     }
+            // }
+            while(linestream >> processes) {
+                if (processes == key) {
+                    linestream >> totalProcesses;
+                    return totalProcesses;
+                } else {
+                    break; // This line is not the desired one, so continue to next line instead of
+                           // reading the rest of the line. I prefer this way,
+                }
+            }
+        }
+    }
+    return totalProcesses;
 }
 }  // namespace
 
@@ -109,14 +138,27 @@ long LinuxParser::ActiveJiffies() { return 0; }
 // TODO: Read and return the number of idle jiffies for the system
 long LinuxParser::IdleJiffies() { return 0; }
 
-// TODO: Read and return CPU utilization
-vector<string> LinuxParser::CpuUtilization() { return {}; }
+vector<string> LinuxParser::CpuUtilization() {
+    std::string line;
+    std::ifstream stream(kProcDirectory + kStatFilename);
+    getline(stream, line); // Only cpu0 is needed.
+
+    std::string cpu, user, nice, system, idle, iowait, irq, softirq, steal, guest, guest_nice;
+    std::stringstream linestream(line);
+    linestream >> cpu >> user >> nice >> system >> idle >> iowait >> irq >> softirq >> steal >> guest >> guest_nice;
+
+    return {user, nice, system, idle, iowait, irq, softirq, steal, guest, guest_nice};
+}
 
 // TODO: Read and return the total number of processes
-int LinuxParser::TotalProcesses() { return 0; }
+int LinuxParser::TotalProcesses() {
+    return ::ParseStatFileForProcesses("processes");
+}
 
 // TODO: Read and return the number of running processes
-int LinuxParser::RunningProcesses() { return 0; }
+int LinuxParser::RunningProcesses() {
+    return ::ParseStatFileForProcesses("procs_running");
+}
 
 // TODO: Read and return the command associated with a process
 // REMOVE: [[maybe_unused]] once you define the function

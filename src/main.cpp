@@ -6,5 +6,5 @@ int main() {
     NCursesDisplay::Display(system);
     // Process process;
     // process.Ram()
-    // system.MemoryUtilization();
+    // system.TotalProcesses();
 }
