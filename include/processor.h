@@ -8,7 +8,8 @@ class Processor {
     float Utilization();
 
    private:
-    int user, nice, system, idle, iowait, irq, softirq, steal, guest, guest_nice;
+    int user, nice, system, idle, iowait, irq, softirq, steal, guest,
+        guest_nice;
 };
 
 #endif

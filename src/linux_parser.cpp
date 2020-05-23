@@ -42,7 +42,8 @@ int ParseStatFileForProcesses(std::string key) {
     string line;
     string processes;
     int totalProcesses;
-    std::ifstream filestream(LinuxParser::kProcDirectory + LinuxParser::kStatFilename);
+    std::ifstream filestream(LinuxParser::kProcDirectory +
+                             LinuxParser::kStatFilename);
     if (filestream.is_open()) {
         while (std::getline(filestream, line)) {
             std::istringstream linestream(line);
@@ -52,13 +53,14 @@ int ParseStatFileForProcesses(std::string key) {
             //         return totalProcesses;
             //     }
             // }
-            while(linestream >> processes) {
+            while (linestream >> processes) {
                 if (processes == key) {
                     linestream >> totalProcesses;
                     return totalProcesses;
                 } else {
-                    break; // This line is not the desired one, so continue to next line instead of
-                           // reading the rest of the line. I prefer this way,
+                    break;  // This line is not the desired one, so continue to
+                            // next line instead of reading the rest of the
+                            // line. I prefer this way,
                 }
             }
         }
@@ -87,7 +89,7 @@ string LinuxParser::Kernel() {
 vector<int> LinuxParser::Pids() {
     vector<int> pids{};
     for (const auto& directory :
-         std::filesystem::directory_iterator(kProcDirectory)) {
+        std::filesystem::directory_iterator(kProcDirectory)) {
         std::string filename = directory.path().filename();
         if (std::all_of(filename.begin(), filename.end(), isdigit)) {
             int pid = stoi(filename);
@@ -141,41 +143,49 @@ long LinuxParser::IdleJiffies() { return 0; }
 vector<string> LinuxParser::CpuUtilization() {
     std::string line;
     std::ifstream stream(kProcDirectory + kStatFilename);
-    getline(stream, line); // Only cpu0 is needed.
+    getline(stream, line);  // Only cpu0 is needed.
 
-    std::string cpu, user, nice, system, idle, iowait, irq, softirq, steal, guest, guest_nice;
+    std::string cpu, user, nice, system, idle, iowait, irq, softirq, steal,
+        guest, guest_nice;
     std::stringstream linestream(line);
-    linestream >> cpu >> user >> nice >> system >> idle >> iowait >> irq >> softirq >> steal >> guest >> guest_nice;
+    linestream >> cpu >> user >> nice >> system >> idle >> iowait >> irq >>
+        softirq >> steal >> guest >> guest_nice;
 
-    return {user, nice, system, idle, iowait, irq, softirq, steal, guest, guest_nice};
+    return {user, nice,    system, idle,  iowait,
+            irq,  softirq, steal,  guest, guest_nice};
 }
 
-// TODO: Read and return the total number of processes
 int LinuxParser::TotalProcesses() {
     return ::ParseStatFileForProcesses("processes");
 }
 
-// TODO: Read and return the number of running processes
 int LinuxParser::RunningProcesses() {
     return ::ParseStatFileForProcesses("procs_running");
 }
 
-// TODO: Read and return the command associated with a process
-// REMOVE: [[maybe_unused]] once you define the function
-string LinuxParser::Command(int pid[[maybe_unused]]) { return string(); }
+string LinuxParser::Command(int pid) {
+    std::ifstream cmd_stream(kProcDirectory + std::to_string(pid) + "/" + kCmdlineFilename);
+    std::string line;
+    if (cmd_stream.is_open()) {
+        std::getline(cmd_stream, line);
+    }
+    return line;
+}
 
-// TODO: Read and return the memory used by a process
-// REMOVE: [[maybe_unused]] once you define the function
-string LinuxParser::Ram(int pid[[maybe_unused]]) { return string(); }
+string LinuxParser::Ram(int pid) {
+    return ::CreateMapFromFileAndDivisor(kProcDirectory + std::to_string(pid) + "/" + kStatusFilename, ':')["VmSize"];
+    // return ParseStatFileAsKeyAndOnlyOneValue(path)["VmSize"];
+}
 
 // TODO: Read and return the user ID associated with a process
 // REMOVE: [[maybe_unused]] once you define the function
 string LinuxParser::Uid(int pid[[maybe_unused]]) { return string(); }
 
-// TODO: Read and return the user associated with a process
-// REMOVE: [[maybe_unused]] once you define the function
-string LinuxParser::User(int pid[[maybe_unused]]) { return string(); }
-
-// TODO: Read and return the uptime of a process
-// REMOVE: [[maybe_unused]] once you define the function
-long LinuxParser::UpTime(int pid[[maybe_unused]]) { return 0; }
+string LinuxParser::User(int pid) {
+    std::string long_user = ::CreateMapFromFileAndDivisor(kProcDirectory + std::to_string(pid) + "/" + kStatusFilename, ':')["Uid"];
+    char const* digits = "0123456789";
+    std::size_t const start = long_user.find_first_of(digits);
+    std::size_t const end = long_user.find_first_not_of(digits, start);
+    std::string int_user = long_user.substr(start, end != std::string::npos ? end-start : end);
+    return int_user;
+}

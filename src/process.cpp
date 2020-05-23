@@ -1,8 +1,10 @@
 #include <unistd.h>
 #include <cctype>
+#include <filesystem>
+#include <iostream>
 #include <sstream>
-#include <string>
 #include <vector>
+
 #include "linux_parser.h"
 
 #include "process.h"
@@ -11,24 +13,41 @@ using std::string;
 using std::to_string;
 using std::vector;
 
-// TODO: Return this process's ID
-int Process::Pid() { return LinuxParser::Pids()[0]; }
+const auto HERTZ = sysconf(_SC_CLK_TCK);
 
-// TODO: Return this process's CPU utilization
-float Process::CpuUtilization() { return 0; }
+Process::Process(int pid) : pid(pid), process_stat(LinuxParser::kProcDirectory + std::to_string(pid) + "/stat") {
+    std::cout << "Process" << std::endl;
+    std::cout << process_stat << std::endl;
+}
 
-// TODO: Return the command that generated this process
-string Process::Command() { return string(); }
+int Process::Pid() {
+    return pid;
+}
 
-// TODO: Return this process's memory utilization
-string Process::Ram() { return string(); }
+float Process::CpuUtilization() {
+    float total_time = process_stat.utime + process_stat.stime + process_stat.cutime + process_stat.cstime;
+    unsigned long int seconds = LinuxParser::UpTime() - (process_stat.starttime / HERTZ);
 
-// TODO: Return the user (name) that generated this process
-string Process::User() { return string(); }
+    cpu = (total_time / HERTZ) / seconds;
+    return cpu;
+}
 
-// TODO: Return the age of this process (in seconds)
-long int Process::UpTime() { return 0; }
+string Process::Command() {
+    return LinuxParser::Command(pid);
+}
 
-// TODO: Overload the "less than" comparison operator for Process objects
-// REMOVE: [[maybe_unused]] once you define the function
-bool Process::operator<(Process const& a[[maybe_unused]]) const { return true; }
+string Process::Ram() {
+    return LinuxParser::Ram(pid);
+}
+
+string Process::User() {
+    return LinuxParser::User(pid);
+}
+
+long int Process::UpTime() {
+    return process_stat.utime / HERTZ;
+}
+
+bool Process::operator<(Process const& other) const {
+    return (pid > other.pid);
+}

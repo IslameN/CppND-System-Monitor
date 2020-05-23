@@ -7,19 +7,19 @@ using std::string;
 
 // This namespace with two similar funtions is just done for learning purposes.
 namespace {
-    std::string AddDigitIfNeeded(const std::string& digits) {
-        if (digits.size() == 1) {
-            return std::to_string(0) + digits;
-        } else {
-            return digits;
-        }
-    }
-    void AddDigitIfNeededPointer(std::string* digits) {
-        if (digits->size() == 1) {
-            *digits = std::to_string(0) + *digits;
-        }
+std::string AddDigitIfNeeded(const std::string& digits) {
+    if (digits.size() == 1) {
+        return std::to_string(0) + digits;
+    } else {
+        return digits;
     }
 }
+void AddDigitIfNeededPointer(std::string* digits) {
+    if (digits->size() == 1) {
+        *digits = std::to_string(0) + *digits;
+    }
+}
+}  // namespace
 
 string Format::ElapsedTime(long secondsString) {
     string hours = std::to_string(secondsString / 3600);
@@ -32,4 +32,3 @@ string Format::ElapsedTime(long secondsString) {
     AddDigitIfNeededPointer(&seconds);
     return hours + ":" + minutes + ":" + seconds;
 }
-

@@ -52,7 +52,7 @@ void NCursesDisplay::DisplaySystem(System& system, WINDOW* window) {
               ("Up Time: " + Format::ElapsedTime(system.UpTime())).c_str());
     wrefresh(window);
 }
-
+#include <iostream>
 void NCursesDisplay::DisplayProcesses(std::vector<Process>& processes,
                                       WINDOW* window, int n) {
     int row{0};

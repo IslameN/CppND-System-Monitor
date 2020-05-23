@@ -17,11 +17,12 @@ float Processor::Utilization() {
     int current_steal = atoi(cpu_values[7].c_str());
     int current_guest = atoi(cpu_values[8].c_str());
     int current_guest_nice = atoi(cpu_values[9].c_str());
-    
+
     int prev_idle = idle + iowait;
     int new_idle = current_idle + current_iowait;
     int prev_non_idle = user + nice + system + irq + softirq + steal;
-    int non_idle = current_user + current_nice + current_system + current_irq + current_softirq + current_steal;
+    int non_idle = current_user + current_nice + current_system + current_irq +
+                   current_softirq + current_steal;
     int prev_total = prev_idle + prev_non_idle;
     int total = new_idle + non_idle;
     int total_diff = total - prev_total;
