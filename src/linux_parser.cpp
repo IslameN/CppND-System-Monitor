@@ -179,7 +179,34 @@ string LinuxParser::Ram(int pid) {
 
 // TODO: Read and return the user ID associated with a process
 // REMOVE: [[maybe_unused]] once you define the function
-string LinuxParser::Uid(int pid[[maybe_unused]]) { return string(); }
+string LinuxParser::Uid(int pid) {
+    std::string user = User(pid);
+
+    std::string divisor = ":";
+    std::string line;
+    std::ifstream stream("/etc/passwd");
+    if (stream.is_open()) {
+        while (getline(stream, line)) {
+            std::string name, variable, user_pid;
+            std::size_t index = line.find_first_of(divisor);
+            name = line.substr(0, index);
+            line = line.substr(index + 1, line.size());
+
+            index = line.find_first_of(divisor);
+            variable = line.substr(0, index);
+            line = line.substr(index + 1, line.size());
+
+            index = line.find_first_of(divisor);
+            user_pid = line.substr(0, index);
+            line = line.substr(index + 1, line.size());
+
+            if (user_pid.compare(user) == 0) {
+                return name;
+            }
+        }
+    }
+    return "NO USER";
+}
 
 string LinuxParser::User(int pid) {
     std::string long_user = ::CreateMapFromFileAndDivisor(kProcDirectory + std::to_string(pid) + "/" + kStatusFilename, ':')["Uid"];

@@ -15,10 +15,7 @@ using std::vector;
 
 const auto HERTZ = sysconf(_SC_CLK_TCK);
 
-Process::Process(int pid) : pid(pid), process_stat(LinuxParser::kProcDirectory + std::to_string(pid) + "/stat") {
-    std::cout << "Process" << std::endl;
-    std::cout << process_stat << std::endl;
-}
+Process::Process(int pid) : pid(pid), process_stat(LinuxParser::kProcDirectory + std::to_string(pid) + "/stat") {}
 
 int Process::Pid() {
     return pid;
@@ -41,7 +38,7 @@ string Process::Ram() {
 }
 
 string Process::User() {
-    return LinuxParser::User(pid);
+    return LinuxParser::Uid(pid);
 }
 
 long int Process::UpTime() {

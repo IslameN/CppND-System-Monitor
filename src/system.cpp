@@ -10,16 +10,11 @@
 #include "processor.h"
 #include "system.h"
 
-// System::System() {
-//     std::vector<int> pids = LinuxParser::Pids();
-// }
-
-// TODO: Return the system's CPU
 Processor& System::Cpu() { return cpu_; }
 
 std::vector<Process>& System::Processes() {
     if (processes.size() != 0) {
-        processes.empty();
+        processes.clear();
     }
     for (int pid : LinuxParser::Pids()) {
         Process process(pid);
