@@ -12,6 +12,8 @@ using std::stof;
 using std::string;
 using std::to_string;
 using std::vector;
+    
+char const* DIGITS = "0123456789";
 
 // Inner and annonymous namespace. Just wanted to use a map for obtaining the
 // Operating System. This map could easily be saved globally and just parse it
@@ -115,7 +117,7 @@ float LinuxParser::MemoryUtilization() {
     return (total - free) / total;
 }
 
-long LinuxParser::UpTime() {
+float LinuxParser::UpTime() {
     string uptime, idle;
     string line;
     std::ifstream stream(kProcDirectory + kUptimeFilename);
@@ -124,7 +126,7 @@ long LinuxParser::UpTime() {
         std::istringstream linestream(line);
         linestream >> uptime >> idle;
     }
-    return atol(uptime.c_str());
+    return atof(uptime.c_str());
 }
 
 // TODO: Read and return the number of jiffies for the system
@@ -173,12 +175,20 @@ string LinuxParser::Command(int pid) {
 }
 
 string LinuxParser::Ram(int pid) {
-    return ::CreateMapFromFileAndDivisor(kProcDirectory + std::to_string(pid) + "/" + kStatusFilename, ':')["VmSize"];
-    // return ParseStatFileAsKeyAndOnlyOneValue(path)["VmSize"];
+    std::string ram = ::CreateMapFromFileAndDivisor(kProcDirectory + std::to_string(pid) + "/" + kStatusFilename, ':')["VmSize"];
+    std::size_t index = ram.find_first_of(DIGITS);
+    ram = ram.substr(index, ram.size());
+    index = ram.find_first_not_of(DIGITS);
+    float kilobytes = atof(ram.substr(0, index).c_str());
+    float megabytes = kilobytes / 1000;
+    
+    std::stringstream ss;
+    ss << std::fixed;
+    ss.precision(2); // set # places after decimal
+    ss << megabytes;
+    return ss.str();
 }
 
-// TODO: Read and return the user ID associated with a process
-// REMOVE: [[maybe_unused]] once you define the function
 string LinuxParser::Uid(int pid) {
     std::string user = User(pid);
 
@@ -210,9 +220,8 @@ string LinuxParser::Uid(int pid) {
 
 string LinuxParser::User(int pid) {
     std::string long_user = ::CreateMapFromFileAndDivisor(kProcDirectory + std::to_string(pid) + "/" + kStatusFilename, ':')["Uid"];
-    char const* digits = "0123456789";
-    std::size_t const start = long_user.find_first_of(digits);
-    std::size_t const end = long_user.find_first_not_of(digits, start);
+    std::size_t const start = long_user.find_first_of(DIGITS);
+    std::size_t const end = long_user.find_first_not_of(DIGITS, start);
     std::string int_user = long_user.substr(start, end != std::string::npos ? end-start : end);
     return int_user;
 }

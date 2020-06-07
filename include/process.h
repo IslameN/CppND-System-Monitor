@@ -22,8 +22,8 @@ class Process {
 
    private:
     int pid;
+    float cpu = -1;
     ProcessStat process_stat;
-    float cpu;
     std::map<std::string, std::string> ParseStatFileAsKeyAndOnlyOneValue(std::string path);
 };
 
