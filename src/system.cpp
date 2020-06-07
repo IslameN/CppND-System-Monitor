@@ -10,7 +10,7 @@
 #include "processor.h"
 #include "system.h"
 
-Processor& System::Cpu() { return cpu_; }
+Processor& System::Cpu() { return cpu; }
 
 std::vector<Process>& System::Processes() {
     if (processes.size() != 0) {

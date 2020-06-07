@@ -15,11 +15,12 @@ using std::vector;
 
 const auto HERTZ = sysconf(_SC_CLK_TCK);
 
-Process::Process(int pid) : pid(pid), process_stat(LinuxParser::kProcDirectory + std::to_string(pid) + "/stat") {
+Process::Process(int pid) : pid(pid), process_stat(LinuxParser::kProcDirectory + std::to_string(pid) + "/" + LinuxParser::kStatFilename) {
     cpu = CpuUtilization();
+    // TODO: maybe all Process calls can be stored as properties and set in this constructor
 }
 
-int Process::Pid() {
+int Process::Pid() const {
     return pid;
 }
 
@@ -37,19 +38,19 @@ float Process::CpuUtilization() {
     return cpu;
 }
 
-string Process::Command() {
+string Process::Command() const {
     return LinuxParser::Command(pid);
 }
 
-string Process::Ram() {
+string Process::Ram() const {
     return LinuxParser::Ram(pid);
 }
 
-string Process::User() {
+string Process::User() const {
     return LinuxParser::Uid(pid);
 }
 
-long int Process::UpTime() {
+long int Process::UpTime() const {
     return process_stat.utime / HERTZ;
 }
 
