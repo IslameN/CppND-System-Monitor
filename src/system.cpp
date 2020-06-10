@@ -17,7 +17,7 @@ std::vector<Process>& System::Processes() {
         processes.clear();
     }
     for (int pid : LinuxParser::Pids()) {
-        Process process(pid);
+        const Process process(pid);
         if (!process.Command().empty()) {
             processes.push_back(process);
         }

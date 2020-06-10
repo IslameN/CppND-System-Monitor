@@ -3,7 +3,6 @@
 #include "format.h"
 
 #include <iostream>
-using std::string;
 
 // This namespace with two similar funtions is just done for learning purposes.
 namespace {
@@ -21,14 +20,14 @@ void AddDigitIfNeededPointer(std::string* digits) {
 }
 }  // namespace
 
-string Format::ElapsedTime(long secondsString) {
-    string hours = std::to_string(secondsString / 3600);
+std::string Format::ElapsedTime(const long secondsString) {
+    std::string hours = std::to_string(secondsString / 3600);
     hours = AddDigitIfNeeded(hours);
 
-    string minutes = std::to_string(secondsString % 3600 / 60);
+    std::string minutes = std::to_string(secondsString % 3600 / 60);
     AddDigitIfNeededPointer(&minutes);
 
-    string seconds = std::to_string(secondsString % 60);
+    std::string seconds = std::to_string(secondsString % 60);
     AddDigitIfNeededPointer(&seconds);
     return hours + ":" + minutes + ":" + seconds;
 }

@@ -8,9 +8,6 @@
 #include "ncurses_display.h"
 #include "system.h"
 
-using std::string;
-using std::to_string;
-
 // 50 bars uniformly displayed from 0 - 100 %
 // 2% is one bar(|)
 std::string NCursesDisplay::ProgressBar(float percent) {
@@ -22,9 +19,9 @@ std::string NCursesDisplay::ProgressBar(float percent) {
         result += i <= bars ? '|' : ' ';
     }
 
-    string display{to_string(percent * 100).substr(0, 4)};
+    std::string display{std::to_string(percent * 100).substr(0, 4)};
     if (percent < 0.1 || percent == 1.0)
-        display = " " + to_string(percent * 100).substr(0, 3);
+        display = " " + std::to_string(percent * 100).substr(0, 3);
     return result + " " + display + "/100%";
 }
 
@@ -44,10 +41,10 @@ void NCursesDisplay::DisplaySystem(System& system, WINDOW* window) {
     wattroff(window, COLOR_PAIR(1));
     mvwprintw(
         window, ++row, 2,
-        ("Total Processes: " + to_string(system.TotalProcesses())).c_str());
+        ("Total Processes: " + std::to_string(system.TotalProcesses())).c_str());
     mvwprintw(
         window, ++row, 2,
-        ("Running Processes: " + to_string(system.RunningProcesses())).c_str());
+        ("Running Processes: " + std::to_string(system.RunningProcesses())).c_str());
     mvwprintw(window, ++row, 2,
               ("Up Time: " + Format::ElapsedTime(system.UpTime())).c_str());
     wrefresh(window);
@@ -72,10 +69,10 @@ void NCursesDisplay::DisplayProcesses(std::vector<Process>& processes,
     wattroff(window, COLOR_PAIR(2));
     for (int i = 0; i < n; ++i) {
         mvwprintw(window, ++row, pid_column,
-                  to_string(processes[i].Pid()).c_str());
+                  std::to_string(processes[i].Pid()).c_str());
         mvwprintw(window, row, user_column, processes[i].User().c_str());
         float cpu = processes[i].CpuUtilization() * 100;
-        mvwprintw(window, row, cpu_column, to_string(cpu).substr(0, 4).c_str());
+        mvwprintw(window, row, cpu_column, std::to_string(cpu).substr(0, 4).c_str());
         mvwprintw(window, row, ram_column, processes[i].Ram().c_str());
         mvwprintw(window, row, time_column,
                   Format::ElapsedTime(processes[i].UpTime()).c_str());

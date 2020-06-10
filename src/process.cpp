@@ -9,10 +9,6 @@
 
 #include "process.h"
 
-using std::string;
-using std::to_string;
-using std::vector;
-
 const auto HERTZ = sysconf(_SC_CLK_TCK);
 
 Process::Process(int pid) : pid(pid), process_stat(LinuxParser::kProcDirectory + std::to_string(pid) + "/" + LinuxParser::kStatFilename) {
@@ -26,8 +22,8 @@ int Process::Pid() const {
 
 float Process::CpuUtilization() {
     if (cpu == -1) {
-        float total_time = process_stat.utime + process_stat.stime + process_stat.cutime + process_stat.cstime;
-        float seconds = (float)LinuxParser::UpTime() - (process_stat.starttime / HERTZ);;
+        const float total_time = process_stat.utime + process_stat.stime + process_stat.cutime + process_stat.cstime;
+        const float seconds = static_cast<float>(LinuxParser::UpTime()) - (process_stat.starttime / HERTZ);;
         cpu = (total_time / HERTZ) / seconds;
         if (cpu > 1) {
             cpu = 1;
@@ -38,20 +34,20 @@ float Process::CpuUtilization() {
     return cpu;
 }
 
-string Process::Command() const {
+std::string Process::Command() const {
     return LinuxParser::Command(pid);
 }
 
-string Process::Ram() const {
+std::string Process::Ram() const {
     return LinuxParser::Ram(pid);
 }
 
-string Process::User() const {
+std::string Process::User() const {
     return LinuxParser::Uid(pid);
 }
 
 long int Process::UpTime() const {
-    return process_stat.utime / HERTZ;
+    return LinuxParser::UpTime() - process_stat.utime / HERTZ;
 }
 
 bool Process::operator < (const Process& other) const {

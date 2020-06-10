@@ -7,11 +7,6 @@
 #include "linux_parser.h"
 
 #include <iostream>
-
-using std::stof;
-using std::string;
-using std::to_string;
-using std::vector;
     
 char const* DIGITS = "0123456789";
 
@@ -21,16 +16,16 @@ char const* DIGITS = "0123456789";
 namespace {
 std::map<std::string, std::string> CreateMapFromFileAndDivisor(std::string file,
                                                                char divisor) {
-    string line;
-    string key;
-    string value;
+    std::string line;
+    std::string key;
+    std::string value;
     std::map<std::string, std::string> result{};
     std::ifstream filestream(file);
     if (filestream.is_open()) {
         while (std::getline(filestream, line)) {
             line.erase(std::remove(line.begin(), line.end(), '"'), line.end());
-            std::size_t index = line.find_first_of(divisor);
-            if (index == string::npos) {
+            const std::size_t index = line.find_first_of(divisor);
+            if (index == std::string::npos) {
                 continue;
             }
             key = line.substr(0, index);
@@ -40,9 +35,10 @@ std::map<std::string, std::string> CreateMapFromFileAndDivisor(std::string file,
     }
     return result;
 }
+
 int ParseStatFileForProcesses(std::string key) {
-    string line;
-    string processes;
+    std::string line;
+    std::string processes;
     int totalProcesses;
     std::ifstream filestream(LinuxParser::kProcDirectory +
                              LinuxParser::kStatFilename);
@@ -71,14 +67,13 @@ int ParseStatFileForProcesses(std::string key) {
 }
 }  // namespace
 
-string LinuxParser::OperatingSystem() {
+std::string LinuxParser::OperatingSystem() {
     return ::CreateMapFromFileAndDivisor(kOSPath, '=')["PRETTY_NAME"];
 }
 
-// DONE: An example of how to read data from the filesystem
-string LinuxParser::Kernel() {
-    string os, kernel, version;
-    string line;
+std::string LinuxParser::Kernel() {
+    std::string os, kernel, version;
+    std::string line;
     std::ifstream stream(kProcDirectory + kVersionFilename);
     if (stream.is_open()) {
         std::getline(stream, line);
@@ -88,13 +83,13 @@ string LinuxParser::Kernel() {
     return kernel;
 }
 
-vector<int> LinuxParser::Pids() {
-    vector<int> pids{};
+std::vector<int> LinuxParser::Pids() {
+    std::vector<int> pids{};
     for (const auto& directory :
         std::filesystem::directory_iterator(kProcDirectory)) {
         std::string filename = directory.path().filename();
         if (std::all_of(filename.begin(), filename.end(), isdigit)) {
-            int pid = stoi(filename);
+            const int pid = stoi(filename);
             pids.push_back(pid);
         }
     }
@@ -107,19 +102,19 @@ float LinuxParser::MemoryUtilization() {
     std::string totalString = memory["MemTotal"];
     totalString.erase(std::remove(totalString.begin(), totalString.end(), ' '),
                       totalString.end());
-    float total = atof(totalString.c_str());
+    const float total = atof(totalString.c_str());
 
     std::string freeString = memory["MemFree"];
     freeString.erase(std::remove(freeString.begin(), freeString.end(), ' '),
                      freeString.end());
-    float free = atof(freeString.c_str());
+    const float free = atof(freeString.c_str());
 
     return (total - free) / total;
 }
 
 float LinuxParser::UpTime() {
-    string uptime, idle;
-    string line;
+    std::string uptime, idle;
+    std::string line;
     std::ifstream stream(kProcDirectory + kUptimeFilename);
     if (stream.is_open()) {
         std::getline(stream, line);
@@ -129,20 +124,7 @@ float LinuxParser::UpTime() {
     return atof(uptime.c_str());
 }
 
-// TODO: Read and return the number of jiffies for the system
-long LinuxParser::Jiffies() { return 0; }
-
-// TODO: Read and return the number of active jiffies for a PID
-// REMOVE: [[maybe_unused]] once you define the function
-long LinuxParser::ActiveJiffies(int pid[[maybe_unused]]) { return 0; }
-
-// TODO: Read and return the number of active jiffies for the system
-long LinuxParser::ActiveJiffies() { return 0; }
-
-// TODO: Read and return the number of idle jiffies for the system
-long LinuxParser::IdleJiffies() { return 0; }
-
-vector<string> LinuxParser::CpuUtilization() {
+std::vector<std::string> LinuxParser::CpuUtilization() {
     std::string line;
     std::ifstream stream(kProcDirectory + kStatFilename);
     getline(stream, line);  // Only cpu0 is needed.
@@ -165,7 +147,7 @@ int LinuxParser::RunningProcesses() {
     return ::ParseStatFileForProcesses("procs_running");
 }
 
-string LinuxParser::Command(int pid) {
+std::string LinuxParser::Command(int pid) {
     std::ifstream cmd_stream(kProcDirectory + std::to_string(pid) + "/" + kCmdlineFilename);
     std::string line;
     if (cmd_stream.is_open()) {
@@ -174,13 +156,13 @@ string LinuxParser::Command(int pid) {
     return line;
 }
 
-string LinuxParser::Ram(int pid) {
+std::string LinuxParser::Ram(int pid) {
     std::string ram = ::CreateMapFromFileAndDivisor(kProcDirectory + std::to_string(pid) + "/" + kStatusFilename, ':')["VmSize"];
     std::size_t index = ram.find_first_of(DIGITS);
     ram = ram.substr(index, ram.size());
     index = ram.find_first_not_of(DIGITS);
-    float kilobytes = atof(ram.substr(0, index).c_str());
-    float megabytes = kilobytes / 1000;
+    const float kilobytes = atof(ram.substr(0, index).c_str());
+    const float megabytes = kilobytes / 1000;
     
     std::stringstream ss;
     ss << std::fixed;
@@ -189,8 +171,8 @@ string LinuxParser::Ram(int pid) {
     return ss.str();
 }
 
-string LinuxParser::Uid(int pid) {
-    std::string user = User(pid);
+std::string LinuxParser::Uid(int pid) {
+    const std::string user = User(pid);
 
     std::string divisor = ":";
     std::string line;
@@ -218,10 +200,10 @@ string LinuxParser::Uid(int pid) {
     return "NO USER";
 }
 
-string LinuxParser::User(int pid) {
+std::string LinuxParser::User(int pid) {
     std::string long_user = ::CreateMapFromFileAndDivisor(kProcDirectory + std::to_string(pid) + "/" + kStatusFilename, ':')["Uid"];
-    std::size_t const start = long_user.find_first_of(DIGITS);
-    std::size_t const end = long_user.find_first_not_of(DIGITS, start);
-    std::string int_user = long_user.substr(start, end != std::string::npos ? end-start : end);
+    const std::size_t start = long_user.find_first_of(DIGITS);
+    const std::size_t end = long_user.find_first_not_of(DIGITS, start);
+    const std::string int_user = long_user.substr(start, end != std::string::npos ? end-start : end);
     return int_user;
 }
